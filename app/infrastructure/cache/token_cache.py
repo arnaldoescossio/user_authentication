@@ -3,9 +3,10 @@ from __future__ import annotations
 import redis.asyncio as aioredis
 
 from app.core.config import settings
+from app.domain.repositories.token_cache import AbstractTokenCache
 
 
-class TokenCache:
+class TokenCache(AbstractTokenCache):
     """
     Redis-backed token cache.
 

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 from app.api.v1.schemas import AdminUserUpdateRequest, UserResponse, UserUpdateRequest
 from app.core.dependencies import AdminUser, CurrentUser, get_user_repository
 from app.core.exceptions import UserNotFoundException
-from app.infrastructure.database.user_repository import SQLUserRepository
+from app.domain.repositories.user_repository import AbstractUserRepository
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -23,7 +23,7 @@ async def get_my_profile(current_user: CurrentUser) -> UserResponse:
 async def update_my_profile(
     body: UserUpdateRequest,
     current_user: CurrentUser,
-    repo: Annotated[SQLUserRepository, Depends(get_user_repository)],
+    repo: Annotated[AbstractUserRepository, Depends(get_user_repository)],
 ) -> UserResponse:
     """Update the current user's own profile fields."""
     updated = current_user.model_copy(
@@ -37,11 +37,12 @@ async def update_my_profile(
 #  Admin-only endpoints                                                #
 # ------------------------------------------------------------------ #
 
+
 @router.get("/{user_id}", response_model=UserResponse, dependencies=[])
 async def get_user_by_id(
     user_id: uuid.UUID,
     _admin: AdminUser,
-    repo: Annotated[SQLUserRepository, Depends(get_user_repository)],
+    repo: Annotated[AbstractUserRepository, Depends(get_user_repository)],
 ) -> UserResponse:
     """[Admin] Retrieve any user by ID."""
     user = await repo.get_by_id(user_id)
@@ -55,7 +56,7 @@ async def admin_update_user(
     user_id: uuid.UUID,
     body: AdminUserUpdateRequest,
     _admin: AdminUser,
-    repo: Annotated[SQLUserRepository, Depends(get_user_repository)],
+    repo: Annotated[AbstractUserRepository, Depends(get_user_repository)],
 ) -> UserResponse:
     """[Admin] Update any user's profile, role, or status."""
     user = await repo.get_by_id(user_id)
@@ -73,7 +74,7 @@ async def admin_update_user(
 async def delete_user(
     user_id: uuid.UUID,
     _admin: AdminUser,
-    repo: Annotated[SQLUserRepository, Depends(get_user_repository)],
+    repo: Annotated[AbstractUserRepository, Depends(get_user_repository)],
 ) -> None:
     """[Admin] Permanently delete a user."""
     user = await repo.get_by_id(user_id)
